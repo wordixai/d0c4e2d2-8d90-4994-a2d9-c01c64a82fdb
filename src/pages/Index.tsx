@@ -1,19 +1,11 @@
 import { useState, useCallback } from "react";
+import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { ImageUpload } from "@/components/ImageUpload";
-import { StyleSelector } from "@/components/StyleSelector";
+import { StyleSelector, styles } from "@/components/StyleSelector";
 import { ResultDisplay } from "@/components/ResultDisplay";
 import { GenerateButton } from "@/components/GenerateButton";
-
-// 示例生成结果图片
-const sampleResults: Record<string, string> = {
-  casual: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&h=600&fit=crop",
-  business: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=600&fit=crop",
-  streetwear: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&h=600&fit=crop",
-  elegant: "https://images.unsplash.com/photo-1518577915332-c2a19f149a75?w=400&h=600&fit=crop",
-  sporty: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=600&fit=crop",
-  vintage: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&h=600&fit=crop",
-};
+import { supabase } from "@/lib/supabase";
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -27,12 +19,41 @@ const Index = () => {
     setIsGenerating(true);
     setResult(null);
 
-    // 模拟 AI 生成过程
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    try {
+      // Get the selected style's prompt
+      const style = styles.find((s) => s.id === selectedStyle);
+      if (!style) {
+        throw new Error("请选择有效的风格");
+      }
 
-    // 使用示例结果
-    setResult(sampleResults[selectedStyle] || sampleResults.casual);
-    setIsGenerating(false);
+      // Call Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke("virtual-try-on", {
+        body: {
+          personImage: selectedImage,
+          clothingDescription: style.prompt,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (data?.image) {
+        setResult(data.image);
+        toast.success("换装完成！");
+      } else {
+        throw new Error("未能生成图片，请重试");
+      }
+    } catch (error) {
+      console.error("Generation error:", error);
+      toast.error(error instanceof Error ? error.message : "生成失败，请重试");
+    } finally {
+      setIsGenerating(false);
+    }
   }, [selectedImage, selectedStyle]);
 
   const handleRegenerate = useCallback(() => {

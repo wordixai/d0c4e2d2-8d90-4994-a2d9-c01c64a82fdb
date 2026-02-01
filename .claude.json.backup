@@ -19,11 +19,18 @@
     "tengu_thinkback": false,
     "tengu_tool_search_unsupported_models": [
       "haiku"
-    ]
+    ],
+    "tengu_ant_attribution_header_new": true
   },
   "userID": "4654e30818a019bf58aca29b4255267cff84a1bba4c1c70ea4f6150a4757fd82",
   "firstStartTime": "2026-02-01T04:31:30.675Z",
   "sonnet45MigrationComplete": true,
   "opus45MigrationComplete": true,
-  "thinkingMigrationComplete": true
+  "thinkingMigrationComplete": true,
+  "skillUsage": {
+    "ai-integration": {
+      "usageCount": 1,
+      "lastUsedAt": 1769922300666
+    }
+  }
 }
