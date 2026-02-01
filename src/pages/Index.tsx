@@ -38,6 +38,11 @@ const Index = () => {
         throw error;
       }
 
+      // 打印完整的API响应
+      console.log("=== AI Gateway Response ===");
+      console.log("Full Response:", JSON.stringify(data, null, 2));
+      console.log("=== End Response ===");
+
       if (data?.error) {
         throw new Error(data.error);
       }

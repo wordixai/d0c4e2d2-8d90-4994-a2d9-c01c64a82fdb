@@ -82,28 +82,33 @@ Requirements:
       }),
     });
 
+    const result = await response.json();
+
+    // 打印完整的API响应结果
+    console.log("=== AI Gateway Response ===");
+    console.log("Status:", response.status);
+    console.log("Full Response:", JSON.stringify(result, null, 2));
+    console.log("=== End Response ===");
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI service error:", response.status, errorText);
+      console.error("AI service error:", response.status, result);
 
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "请求过于频繁，请稍后再试" }),
+          JSON.stringify({ error: "请求过于频繁，请稍后再试", rawResponse: result }),
           { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
 
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI服务配额已用完" }),
+          JSON.stringify({ error: "AI服务配额已用完", rawResponse: result }),
           { status: 402, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
 
-      throw new Error(`AI处理失败: ${errorText}`);
+      throw new Error(`AI处理失败: ${JSON.stringify(result)}`);
     }
-
-    const result = await response.json();
 
     // Parse response to extract generated image
     let generatedImageUrl: string | null = null;
@@ -138,7 +143,8 @@ Requirements:
         success: true,
         image: generatedImageUrl,
         text: textContent,
-        model: "google/gemini-3-pro-image-preview"
+        model: "google/gemini-3-pro-image-preview",
+        rawResponse: result // 返回原始响应以便调试
       }),
       {
         status: 200,
